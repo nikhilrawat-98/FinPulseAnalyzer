@@ -3,7 +3,7 @@ pandas
 pdfplumber
 fpdf
 python-dotenv
-openai
+openai==0.28.0
 matplotlib
 nltk
 wordcloud
