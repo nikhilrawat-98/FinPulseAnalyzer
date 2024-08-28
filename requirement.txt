@@ -1,0 +1,11 @@
+streamlit
+pandas
+pdfplumber
+fpdf
+python-dotenv
+openai
+matplotlib
+nltk
+wordcloud
+requests
+beautifulsoup4
