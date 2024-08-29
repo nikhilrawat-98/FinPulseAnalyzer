@@ -13,6 +13,7 @@ from collections import Counter
 from wordcloud import WordCloud
 import requests
 from bs4 import BeautifulSoup
+import time  # Import the time module
 
 # Ensure you have the NLTK data downloaded
 nltk.download('punkt')
@@ -342,16 +343,24 @@ def main():
         if st.button("Analyze"):
             if user_input:
                 st.write("Processing entered text...")
+                
+                start_time = time.time()  # Start timer
+                
                 cleaned_text = clean_text_with_priority(user_input, lexicon_words, specific_phrases, phrase_weights)
 
                 with st.spinner("Analyzing sentiment..."):
                     sentiment_analysis, score = get_text_sentiment_analysis(cleaned_text, temperature=0.05)
+                    end_time = time.time()  # End timer
+
                     if sentiment_analysis:
                         st.subheader("Sentiment Analysis")
                         st.write(sentiment_analysis)
 
                         st.subheader("Word Cloud")
                         generate_word_cloud(cleaned_text)
+
+                        elapsed_time = end_time - start_time
+                        st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
                         # Create and download outcome PDF
                         outcome_pdf = PDF()
@@ -391,6 +400,8 @@ def main():
                 for uploaded_file in uploaded_files:
                     st.write(f"Processing {uploaded_file.name}...")
                     pdf_names.append(uploaded_file.name)
+                    
+                    start_time = time.time()  # Start timer
 
                     # Extract text from the uploaded PDF
                     with st.spinner("Extracting text from PDF..."):
@@ -403,6 +414,8 @@ def main():
                     # Perform sentiment analysis on the cleaned text
                     with st.spinner("Analyzing sentiment..."):
                         sentiment_analysis, score = get_sentiment_analysis(cleaned_text, temperature)
+                        end_time = time.time()  # End timer
+
                         if sentiment_analysis:
                             all_sentiments.append(score)
 
@@ -412,6 +425,9 @@ def main():
 
                             st.subheader("Word Cloud")
                             generate_word_cloud(cleaned_text)
+
+                            elapsed_time = end_time - start_time
+                            st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
                             # Create and download cleaned PDF
                             cleaned_pdf = PDF()
@@ -458,16 +474,23 @@ def main():
                 st.write("Fetching articles...")
                 
                 with st.spinner("Fetching and analyzing articles..."):
+                    start_time = time.time()  # Start timer
+
                     articles = fetch_articles(urls, headers)
                     
                     for article in articles:
                         st.subheader(article['title'])
                         sentiment_analysis, score = get_news_sentiment_analysis(article['text'], temperature=0.05)
+                        end_time = time.time()  # End timer
+
                         if sentiment_analysis:
                             st.write(sentiment_analysis)
 
                             st.subheader("Word Cloud")
                             generate_word_cloud(article['text'])
+
+                            elapsed_time = end_time - start_time
+                            st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
                             # Create and download outcome PDF
                             outcome_pdf = PDF()
