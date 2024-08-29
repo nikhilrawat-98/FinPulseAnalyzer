@@ -1,10 +1,9 @@
-import base64
 import streamlit as st
+import base64
 import pandas as pd
 import pdfplumber
 import re
 from fpdf import FPDF
-from dotenv import load_dotenv
 import os
 import openai
 import matplotlib.pyplot as plt
@@ -43,9 +42,6 @@ def setup_openai_api_key():
 
 # Call the function to set up API key
 setup_openai_api_key()
-
-# Load environment variables from a .env file if present
-load_dotenv()
 
 # Define weights for specific phrases
 phrase_weights = {
@@ -137,6 +133,10 @@ def clean_text_with_priority(text, lexicon_words, specific_phrases, phrase_weigh
 
 # Function to get sentiment analysis for text input using OpenAI
 def get_text_sentiment_analysis(text, temperature=0.05):
+    if not openai.api_key:
+        st.error("Please enter your OpenAI API Key to proceed.")
+        return
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -153,6 +153,10 @@ def get_text_sentiment_analysis(text, temperature=0.05):
 
 # Function to get sentiment analysis using OpenAI for PDFs
 def get_sentiment_analysis(text, temperature=0.05):
+    if not openai.api_key:
+        st.error("Please enter your OpenAI API Key to proceed.")
+        return
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -169,6 +173,10 @@ def get_sentiment_analysis(text, temperature=0.05):
 
 # Function to get sentiment analysis for news articles using OpenAI
 def get_news_sentiment_analysis(text, temperature=0.05):
+    if not openai.api_key:
+        st.error("Please enter your OpenAI API Key to proceed.")
+        return
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -226,95 +234,6 @@ def fetch_articles(urls, headers):
             st.error(f"Failed to fetch the article from {url}, status code: {response.status_code}")
     return data
 
-# Streamlit app configuration
-st.set_page_config(
-    page_title="Financial Sentiment Analyzer",
-    page_icon="✔",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        'About': "# This is a Financial Sentiment Analyzer app created with Streamlit"
-    }
-)
-
-# Function to encode an image to base64
-def get_img_as_base64(file):
-    with open(file, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-# Encode your background images
-img_main = get_img_as_base64("Background3.png")
-
-# Custom CSS for background images and styling
-def add_custom_css():
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/png;base64,{img_main}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-        .css-1d391kg {{
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 10px;
-            padding: 20px;
-        }}
-        .stButton > button {{
-            background-color: #1f77b4;
-            color: white;
-            border-radius: 10px;
-            height: 50px;
-            width: 100%;
-            font-size: 18px;
-            border: none;
-        }}
-        .stButton > button:hover {{
-            background-color: #0056a1;
-        }}
-        .stTextInput > div > div > input {{
-            font-size: 18px;
-            padding: 10px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            border: 2px solid #000000;
-        }}
-        .stFileUploader > div > div > div > button {{
-            font-size: 18px;
-            border-radius: 10px;
-            background-color: #1f77b4;
-            color: white;
-            border: none;
-        }}
-        .stFileUploader > div > div > div > button:hover {{
-            background-color: #0056a1;
-        }}
-        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {{
-            color: #000000;
-        }}
-        .css-1aumxhk, .css-1avcm0n, .css-1kyxreq, .css-1d391kg, .css-1offfwp, .css-pkbazv {{
-            background-color: rgba(255, 255, 255, 0.85) !important;
-            border-radius: 10px;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-add_custom_css()
-
-# Define the PDF class here so it's available throughout the script
-class PDF(FPDF):
-    def body(self, body):
-        self.set_font('Arial', '', 14)
-        # Handling utf-8 encoded strings
-        body = body.encode('latin-1', 'replace').decode('latin-1')
-        self.multi_cell(0, 10, body)
-        self.ln()
-
 # Streamlit app main function
 def main():
     st.title("Financial Sentiment Analyzer ✔")
@@ -349,25 +268,26 @@ def main():
 
                 with st.spinner("Analyzing sentiment..."):
                     sentiment_analysis, score = get_text_sentiment_analysis(cleaned_text, temperature=0.05)
-                    st.subheader("Sentiment Analysis")
-                    st.write(sentiment_analysis)
+                    if sentiment_analysis:
+                        st.subheader("Sentiment Analysis")
+                        st.write(sentiment_analysis)
 
-                st.subheader("Word Cloud")
-                generate_word_cloud(cleaned_text)
+                        st.subheader("Word Cloud")
+                        generate_word_cloud(cleaned_text)
 
-                # Create and download outcome PDF
-                outcome_pdf = PDF()
-                outcome_pdf.add_page()
-                outcome_pdf.set_font('Arial', 'B', 16)
-                outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for Input Text\n")
-                outcome_pdf.set_font('Arial', '', 14)
-                outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                outcome_pdf_path = f'outcome_output_text.pdf'
-                outcome_pdf.output(outcome_pdf_path)
+                        # Create and download outcome PDF
+                        outcome_pdf = PDF()
+                        outcome_pdf.add_page()
+                        outcome_pdf.set_font('Arial', 'B', 16)
+                        outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for Input Text\n")
+                        outcome_pdf.set_font('Arial', '', 14)
+                        outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
+                        outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
+                        outcome_pdf_path = f'outcome_output_text.pdf'
+                        outcome_pdf.output(outcome_pdf_path)
 
-                with open(outcome_pdf_path, "rb") as file:
-                    st.download_button(label=f"Download Sentiment Analysis Outcome", data=file, file_name=outcome_pdf_path)
+                        with open(outcome_pdf_path, "rb") as file:
+                            st.download_button(label=f"Download Sentiment Analysis Outcome", data=file, file_name=outcome_pdf_path)
 
     elif analysis_mode == "Analyze PDF":
         st.header("Upload PDF Files")
@@ -405,38 +325,39 @@ def main():
                     # Perform sentiment analysis on the cleaned text
                     with st.spinner("Analyzing sentiment..."):
                         sentiment_analysis, score = get_sentiment_analysis(cleaned_text, temperature)
-                        all_sentiments.append(score)
+                        if sentiment_analysis:
+                            all_sentiments.append(score)
 
-                    # Display the conclusion for the current PDF
-                    st.subheader(f"Conclusion for {uploaded_file.name}")
-                    st.write(sentiment_analysis)
+                            # Display the conclusion for the current PDF
+                            st.subheader(f"Conclusion for {uploaded_file.name}")
+                            st.write(sentiment_analysis)
 
-                    st.subheader("Word Cloud")
-                    generate_word_cloud(cleaned_text)
+                            st.subheader("Word Cloud")
+                            generate_word_cloud(cleaned_text)
 
-                    # Create and download cleaned PDF
-                    cleaned_pdf = PDF()
-                    cleaned_pdf.add_page()
-                    cleaned_pdf.body(cleaned_text)
-                    output_pdf_path = f'cleaned_output_{uploaded_file.name}'
-                    cleaned_pdf.output(output_pdf_path)
+                            # Create and download cleaned PDF
+                            cleaned_pdf = PDF()
+                            cleaned_pdf.add_page()
+                            cleaned_pdf.body(cleaned_text)
+                            output_pdf_path = f'cleaned_output_{uploaded_file.name}'
+                            cleaned_pdf.output(output_pdf_path)
 
-                    with open(output_pdf_path, "rb") as file:
-                        st.download_button(label=f"Download Cleaned PDF for {uploaded_file.name}", data=file, file_name=output_pdf_path)
+                            with open(output_pdf_path, "rb") as file:
+                                st.download_button(label=f"Download Cleaned PDF for {uploaded_file.name}", data=file, file_name=output_pdf_path)
 
-                    # Create and download outcome PDF
-                    outcome_pdf = PDF()
-                    outcome_pdf.add_page()
-                    outcome_pdf.set_font('Arial', 'B', 16)
-                    outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {uploaded_file.name}\n")
-                    outcome_pdf.set_font('Arial', '', 14)
-                    outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                    outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                    outcome_pdf_path = f'outcome_output_{uploaded_file.name}.pdf'
-                    outcome_pdf.output(outcome_pdf_path)
+                            # Create and download outcome PDF
+                            outcome_pdf = PDF()
+                            outcome_pdf.add_page()
+                            outcome_pdf.set_font('Arial', 'B', 16)
+                            outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {uploaded_file.name}\n")
+                            outcome_pdf.set_font('Arial', '', 14)
+                            outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
+                            outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
+                            outcome_pdf_path = f'outcome_output_{uploaded_file.name}.pdf'
+                            outcome_pdf.output(outcome_pdf_path)
 
-                    with open(outcome_pdf_path, "rb") as file:
-                        st.download_button(label=f"Download Sentiment Analysis Outcome for {uploaded_file.name}", data=file, file_name=outcome_pdf_path)
+                            with open(outcome_pdf_path, "rb") as file:
+                                st.download_button(label=f"Download Sentiment Analysis Outcome for {uploaded_file.name}", data=file, file_name=outcome_pdf_path)
 
                 # Plot the sentiment scores
                 sentiment_df = pd.DataFrame({
@@ -464,24 +385,25 @@ def main():
                     for article in articles:
                         st.subheader(article['title'])
                         sentiment_analysis, score = get_news_sentiment_analysis(article['text'], temperature=0.05)
-                        st.write(sentiment_analysis)
+                        if sentiment_analysis:
+                            st.write(sentiment_analysis)
 
-                        st.subheader("Word Cloud")
-                        generate_word_cloud(article['text'])
+                            st.subheader("Word Cloud")
+                            generate_word_cloud(article['text'])
 
-                        # Create and download outcome PDF
-                        outcome_pdf = PDF()
-                        outcome_pdf.add_page()
-                        outcome_pdf.set_font('Arial', 'B', 16)
-                        outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {article['title']}\n")
-                        outcome_pdf.set_font('Arial', '', 14)
-                        outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                        outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                        outcome_pdf_path = f'outcome_output_{article["title"]}.pdf'
-                        outcome_pdf.output(outcome_pdf_path)
+                            # Create and download outcome PDF
+                            outcome_pdf = PDF()
+                            outcome_pdf.add_page()
+                            outcome_pdf.set_font('Arial', 'B', 16)
+                            outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {article['title']}\n")
+                            outcome_pdf.set_font('Arial', '', 14)
+                            outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
+                            outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
+                            outcome_pdf_path = f'outcome_output_{article["title"]}.pdf'
+                            outcome_pdf.output(outcome_pdf_path)
 
-                        with open(outcome_pdf_path, "rb") as file:
-                            st.download_button(label=f"Download Sentiment Analysis Outcome for {article['title']}", data=file, file_name=outcome_pdf_path)
+                            with open(outcome_pdf_path, "rb") as file:
+                                st.download_button(label=f"Download Sentiment Analysis Outcome for {article['title']}", data=file, file_name=outcome_pdf_path)
 
 if __name__ == "__main__":
     main()
