@@ -17,13 +17,24 @@ from bs4 import BeautifulSoup
 
 # Ensure you have the NLTK data downloaded
 nltk.download('punkt')
-nltk.download('punkt_tab') 
+nltk.download('punkt_tab')
 
 # Load environment variables from a .env file if present
 load_dotenv()
 
-# Set up OpenAI API key
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Function to set up OpenAI API key
+def setup_openai_api_key():
+    # Provide a text input for users to input their API key
+    user_api_key = st.text_input("Enter your OpenAI API Key", type="password")
+
+    if user_api_key:
+        openai.api_key = user_api_key
+        st.success("API key set successfully!")
+    else:
+        st.warning("Please enter your OpenAI API Key.")
+
+# Call the function to set up API key
+setup_openai_api_key()
 
 # Define weights for specific phrases
 phrase_weights = {
@@ -158,7 +169,7 @@ def get_news_sentiment_analysis(text, temperature=0.05):
     sentiment_text = response['choices'][0]['message']['content'].strip()
     
     # Extract a continuous sentiment score from the sentiment analysis
-    score = sentiment_text.count('positive') * 1 - sentiment_text.count('ne gative') * 1
+    score = sentiment_text.count('positive') * 1 - sentiment_text.count('negative') * 1
     return sentiment_text, score
 
 # Function to generate a word cloud
