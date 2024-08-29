@@ -234,6 +234,84 @@ def fetch_articles(urls, headers):
             st.error(f"Failed to fetch the article from {url}, status code: {response.status_code}")
     return data
 
+# Function to encode an image to base64
+def get_img_as_base64(file):
+    with open(file, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Encode your background images
+img_main = get_img_as_base64("Background3.png")
+
+# Custom CSS for background images and styling
+def add_custom_css():
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{img_main}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        .css-1d391kg {{
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            padding: 20px;
+        }}
+        .stButton > button {{
+            background-color: #1f77b4;
+            color: white;
+            border-radius: 10px;
+            height: 50px;
+            width: 100%;
+            font-size: 18px;
+            border: none;
+        }}
+        .stButton > button:hover {{
+            background-color: #0056a1;
+        }}
+        .stTextInput > div > div > input {{
+            font-size: 18px;
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            border: 2px solid #000000;
+        }}
+        .stFileUploader > div > div > div > button {{
+            font-size: 18px;
+            border-radius: 10px;
+            background-color: #1f77b4;
+            color: white;
+            border: none;
+        }}
+        .stFileUploader > div > div > div > button:hover {{
+            background-color: #0056a1;
+        }}
+        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {{
+            color: #000000;
+        }}
+        .css-1aumxhk, .css-1avcm0n, .css-1kyxreq, .css-1d391kg, .css-1offfwp, .css-pkbazv {{
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            border-radius: 10px;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+add_custom_css()
+
+# Define the PDF class here so it's available throughout the script
+class PDF(FPDF):
+    def body(self, body):
+        self.set_font('Arial', '', 14)
+        # Handling utf-8 encoded strings
+        body = body.encode('latin-1', 'replace').decode('latin-1')
+        self.multi_cell(0, 10, body)
+        self.ln()
+
 # Streamlit app main function
 def main():
     st.title("Financial Sentiment Analyzer ✔")
