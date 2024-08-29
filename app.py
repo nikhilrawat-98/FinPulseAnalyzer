@@ -19,8 +19,16 @@ from bs4 import BeautifulSoup
 nltk.download('punkt')
 nltk.download('punkt_tab')
 
-# Load environment variables from a .env file if present
-load_dotenv()
+# Streamlit app configuration
+st.set_page_config(
+    page_title="Financial Sentiment Analyzer",
+    page_icon="✔",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'About': "# This is a Financial Sentiment Analyzer app created with Streamlit"
+    }
+)
 
 # Function to set up OpenAI API key
 def setup_openai_api_key():
@@ -35,6 +43,9 @@ def setup_openai_api_key():
 
 # Call the function to set up API key
 setup_openai_api_key()
+
+# Load environment variables from a .env file if present
+load_dotenv()
 
 # Define weights for specific phrases
 phrase_weights = {
