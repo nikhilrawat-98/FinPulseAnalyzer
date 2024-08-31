@@ -313,6 +313,25 @@ class PDF(FPDF):
         self.multi_cell(0, 10, body)
         self.ln()
 
+# Function to create and download outcome PDF safely
+def create_and_download_pdf(filename, sentiment_analysis, score):
+    try:
+        outcome_pdf = PDF()
+        outcome_pdf.add_page()
+        outcome_pdf.set_font('Arial', 'B', 16)
+        outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {filename}\n")
+        outcome_pdf.set_font('Arial', '', 14)
+        outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
+        outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
+        outcome_pdf_path = f'outcome_output_{filename}.pdf'
+        outcome_pdf.output(outcome_pdf_path)
+
+        with open(outcome_pdf_path, "rb") as file:
+            st.download_button(label=f"Download Sentiment Analysis Outcome", data=file, file_name=outcome_pdf_path)
+    
+    except UnicodeEncodeError:
+        st.warning(f"Unable to generate PDF for {filename} due to encoding issues. However, you can view the sentiment analysis above.")
+
 # Streamlit app main function
 def main():
     st.title("Financial Sentiment Analyzer ✔")
@@ -362,19 +381,8 @@ def main():
                         elapsed_time = end_time - start_time
                         st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
-                        # Create and download outcome PDF
-                        outcome_pdf = PDF()
-                        outcome_pdf.add_page()
-                        outcome_pdf.set_font('Arial', 'B', 16)
-                        outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for Input Text\n")
-                        outcome_pdf.set_font('Arial', '', 14)
-                        outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                        outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                        outcome_pdf_path = f'outcome_output_text.pdf'
-                        outcome_pdf.output(outcome_pdf_path)
-
-                        with open(outcome_pdf_path, "rb") as file:
-                            st.download_button(label=f"Download Sentiment Analysis Outcome", data=file, file_name=outcome_pdf_path)
+                        # Attempt to create and download the outcome PDF
+                        create_and_download_pdf("Input Text", sentiment_analysis, score)
 
     elif analysis_mode == "Analyze PDF":
         st.header("Upload PDF Files")
@@ -429,29 +437,8 @@ def main():
                             elapsed_time = end_time - start_time
                             st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
-                            # Create and download cleaned PDF
-                            cleaned_pdf = PDF()
-                            cleaned_pdf.add_page()
-                            cleaned_pdf.body(cleaned_text)
-                            output_pdf_path = f'cleaned_output_{uploaded_file.name}'
-                            cleaned_pdf.output(output_pdf_path)
-
-                            with open(output_pdf_path, "rb") as file:
-                                st.download_button(label=f"Download Cleaned PDF for {uploaded_file.name}", data=file, file_name=output_pdf_path)
-
-                            # Create and download outcome PDF
-                            outcome_pdf = PDF()
-                            outcome_pdf.add_page()
-                            outcome_pdf.set_font('Arial', 'B', 16)
-                            outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {uploaded_file.name}\n")
-                            outcome_pdf.set_font('Arial', '', 14)
-                            outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                            outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                            outcome_pdf_path = f'outcome_output_{uploaded_file.name}.pdf'
-                            outcome_pdf.output(outcome_pdf_path)
-
-                            with open(outcome_pdf_path, "rb") as file:
-                                st.download_button(label=f"Download Sentiment Analysis Outcome for {uploaded_file.name}", data=file, file_name=outcome_pdf_path)
+                            # Attempt to create and download the outcome PDF
+                            create_and_download_pdf(uploaded_file.name, sentiment_analysis, score)
 
                 # Plot the sentiment scores
                 sentiment_df = pd.DataFrame({
@@ -492,19 +479,8 @@ def main():
                             elapsed_time = end_time - start_time
                             st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
 
-                            # Create and download outcome PDF
-                            outcome_pdf = PDF()
-                            outcome_pdf.add_page()
-                            outcome_pdf.set_font('Arial', 'B', 16)
-                            outcome_pdf.multi_cell(0, 10, f"Sentiment Analysis Outcome for {article['title']}\n")
-                            outcome_pdf.set_font('Arial', '', 14)
-                            outcome_pdf.multi_cell(0, 10, f"{sentiment_analysis}\n")
-                            outcome_pdf.multi_cell(0, 10, f"Sentiment Score: {score}\n")
-                            outcome_pdf_path = f'outcome_output_{article["title"]}.pdf'
-                            outcome_pdf.output(outcome_pdf_path)
-
-                            with open(outcome_pdf_path, "rb") as file:
-                                st.download_button(label=f"Download Sentiment Analysis Outcome for {article['title']}", data=file, file_name=outcome_pdf_path)
+                            # Attempt to create and download the outcome PDF
+                            create_and_download_pdf(article['title'], sentiment_analysis, score)
 
 if __name__ == "__main__":
     main()
