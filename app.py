@@ -237,7 +237,7 @@ def fetch_articles(urls, headers):
 
 # Function to encode an image to base64
 def get_img_as_base64(file):
-    with open(file, "rb") as f:
+    with open(file, "rb") as f):
         data = f.read()
     return base64.b64encode(data).decode()
 
@@ -331,6 +331,21 @@ def create_and_download_pdf(filename, sentiment_analysis, score):
     
     except UnicodeEncodeError:
         st.warning(f"Unable to generate PDF for {filename} due to encoding issues. However, you can view the sentiment analysis above.")
+
+# Function to create and download cleaned text PDF safely
+def create_and_download_cleaned_pdf(filename, cleaned_text):
+    try:
+        cleaned_pdf = PDF()
+        cleaned_pdf.add_page()
+        cleaned_pdf.body(cleaned_text)
+        output_pdf_path = f'cleaned_output_{filename}.pdf'
+        cleaned_pdf.output(output_pdf_path)
+
+        with open(output_pdf_path, "rb") as file:
+            st.download_button(label=f"Download Cleaned PDF for {filename}", data=file, file_name=output_pdf_path)
+    
+    except UnicodeEncodeError:
+        st.warning(f"Unable to generate cleaned PDF for {filename} due to encoding issues.")
 
 # Streamlit app main function
 def main():
@@ -436,6 +451,9 @@ def main():
 
                             elapsed_time = end_time - start_time
                             st.write(f"Time taken for analysis: {elapsed_time:.2f} seconds")  # Display elapsed time
+
+                            # Attempt to create and download the cleaned PDF
+                            create_and_download_cleaned_pdf(uploaded_file.name, cleaned_text)
 
                             # Attempt to create and download the outcome PDF
                             create_and_download_pdf(uploaded_file.name, sentiment_analysis, score)
